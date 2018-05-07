@@ -11,7 +11,10 @@ trainIndex = createDataPartition(diagnosis, p = 0.50,list=FALSE)
 training = adData[trainIndex,]
 testing = adData[-trainIndex,]
 head(diagnosis)
+# first time
 # correct
+# second time
+# incorrect
 
 # Q2
 rm(list=ls())
@@ -91,9 +94,24 @@ adData = data.frame(diagnosis,predictors)
 inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
 training = adData[ inTrain,]
 testing = adData[-inTrain,]
-#
-#...
+# find cols starting with IL
+training_IL <- training[,grepl("IL",names(training))]
+training_IL <- training_IL[,-ncol(training_IL)] # last column is called TRAIL_R3
+# PCA
+str(training_IL)
+preProc <- preProcess(training_IL,method="pca",thresh=0.8)
+preProc
+preProc$numComp # number of components needed for 0.9 % of variation
+pc <- predict(preProc,training_IL)
+
+
+# first time
 # answer: 7
+# correct
+
+# second time
+# question: number of principal components needed for 90 % variation
+# answer: 9
 # correct
 
 # Q5
@@ -107,7 +125,27 @@ adData = data.frame(diagnosis,predictors)
 inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
 training = adData[ inTrain,]
 testing = adData[-inTrain,]
-#
-# ...
+# subsetting to IL
+training_IL <- training[,grepl("IL",names(training))]
+training_IL <- training_IL[,-ncol(training_IL)] # last column is called TRAIL_R3
+# PCA model
+preProc <- preProcess(training_IL,method="pca",thresh=0.8)
+trainPC <- predict(preProc,training_IL)
+modelFit_pca <- train(x=trainPC, y=training$diagnosis,method="glm")
+modelFit_pca
+# non-pca model
+# ... try re-subset trainng_IL
+training_IL <- training[,grepl("IL",names(training))|grepl("diagnosis", names(training))]
+training_IL <- training_IL[,-ncol(training_IL)]
+#training_IL <- cbind(training_IL, training$diagnosis)
+#names(training_IL)[ncol(training_IL)] <- "diagnosis"
+modelFit_full <- train(diagnosis ~ ., data=training_IL, method="glm")
+modelFit_full
+# first time
 # answer: Non-PCA:0.75, PCA:0.71
 # wrong
+
+# question: use IL + diagnosis -> use PCA with threshold = 80%, apply glm, which one is better
+# doesnt add up: pca=71, non-pca = 68
+# answer: non-pca=65, pca=72
+# correct
